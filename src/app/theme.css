@@ -157,6 +157,18 @@ kbd { padding: 2px 5px; border: 1px solid #536357; border-radius: 3px; backgroun
 .failure-marker { fill: var(--terracotta); stroke: #fff0dd; stroke-width: 1.5; }
 .selection-ring { fill: none; stroke: var(--gold); stroke-dasharray: 3 2; stroke-width: 1.2; pointer-events: none; }
 .scene-piece.focused .selection-ring { stroke: var(--terracotta); stroke-width: 2; }
+.affected-ring { fill: none; stroke: var(--terracotta); stroke-dasharray: 5 3; stroke-width: 1.3; pointer-events: none; opacity: .85; }
+.origin-badge rect { stroke-width: 0; pointer-events: none; }
+.origin-badge text { font: 7px var(--mono); text-anchor: middle; pointer-events: none; }
+.origin-badge.retained rect { fill: rgba(145, 196, 164, 0.22); stroke: var(--mint); stroke-width: .8; }
+.origin-badge.retained text { fill: var(--mint); }
+.origin-badge.recomputed rect { fill: rgba(230, 189, 104, 0.22); stroke: var(--gold); stroke-width: .8; }
+.origin-badge.recomputed text { fill: var(--gold); }
+.stage-legend { display: flex; align-items: center; gap: 10px; color: var(--quiet); font: 9px var(--mono); }
+.legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+.legend-dot.retained { background: var(--mint); }
+.legend-dot.recomputed { background: var(--gold); }
+.legend-dot.affected { background: transparent; border: 1px dashed var(--terracotta); }
 .focus-reticle circle { fill: none; stroke: var(--terracotta); stroke-dasharray: 3 4; stroke-width: 1; opacity: .65; }
 .board-scale { transform: translate(62px, 478px); stroke: #aab7a5; fill: #aab7a5; stroke-width: 1; }
 .board-scale text { stroke: none; font: 8px var(--mono); }

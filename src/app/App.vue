@@ -44,10 +44,11 @@ const saveLabel = computed(() => saveState.value === 'saved' ? '已保存' : sav
           <div class="revision-chip"><Dot :size="19" />修订 {{ document.revision.toString().padStart(2, '0') }}</div>
         </div>
         <BuildCanvas :document="document" :active-tool="layout.activeTool.value" :selected-id="layout.selectedId.value"
-          :run="simulation.run.value" :focus-piece-id="focusPieceId" @place="place" @select="layout.select"
+          :run="simulation.activeRun.value" :focus-piece-id="focusPieceId" @place="place" @select="layout.select"
           @move="move" />
-        <SimulationBar :run="simulation.run.value" :stale="simulation.stale.value" :busy="simulation.busy.value"
-          :issue="simulation.issue.value" @run="simulation.simulate" @reset="simulation.clear" />
+        <SimulationBar :run="simulation.activeRun.value" :stale="simulation.stale.value" :busy="simulation.busy.value"
+          :issue="simulation.issue.value" :summary="simulation.lastSummary.value"
+          @run="simulation.simulate" @reset="simulation.clear" @cancel="simulation.cancel" />
         <div class="center-footer">
           <span><Cloud :size="13" /> 本机自动保存</span><span class="footer-divider">/</span>
           <span>摆放 {{ document.pieces.length }} 件 · 连线 {{ document.connections.length }} 条</span>
@@ -58,9 +59,11 @@ const saveLabel = computed(() => saveState.value === 'saved' ? '已保存' : sav
       <aside class="right-rail">
         <ObjectInspector :piece="layout.selected.value" @rotate="layout.rotate" @remove="layout.remove" @update="layout.update" />
         <div class="rail-divider"></div>
-        <ReplayPanel :run="simulation.run.value" :events="review.events.value" :time="review.time.value"
+        <ReplayPanel :run="simulation.activeRun.value" :runs="simulation.runs.value"
+          :active-run-id="simulation.activeRunId.value" :events="review.events.value" :time="review.time.value"
           :playing="review.playing.value" :current-event="review.currentEvent.value" :stale="simulation.stale.value"
-          @toggle="review.toggle" @seek="review.seek" @restart="review.restart" @event="focusEvent" />
+          @toggle="review.toggle" @seek="review.seek" @restart="review.restart" @event="focusEvent"
+          @select-run="simulation.selectRun" />
       </aside>
     </main>
     <footer class="statusbar"><span><AudioWaveform :size="14" /> CHAINLINE FIELD NOTES</span><span>02.4 / MOTION STUDY</span><span>LOCAL PROJECT</span></footer>

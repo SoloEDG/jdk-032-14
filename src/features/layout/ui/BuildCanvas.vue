@@ -13,6 +13,15 @@ const emit = defineEmits<{
 const svg = ref<SVGSVGElement | null>(null)
 const view = { width: 1040, height: 510, margin: 35 }
 const fallen = computed(() => new Set(props.run?.events.filter(event => event.kind === 'fall').map(event => event.pieceId) ?? []))
+/** 每个元件首个事件的来源：保留前缀 vs 重算后缀 */
+const pieceOrigin = computed(() => {
+  const map = new Map<string, string>()
+  for (const event of props.run?.events ?? []) {
+    if (!map.has(event.pieceId)) map.set(event.pieceId, event.origin)
+  }
+  return map
+})
+const affected = computed(() => new Set(props.run?.affectedPieceIds ?? []))
 const failed = computed(() => props.run?.interruptedPieceId ?? null)
 let dragging: string | null = null
 
@@ -51,7 +60,9 @@ function pxX(x: number) { return view.margin + x / props.document.scene.width * 
 function pxY(y: number) { return view.margin + y / props.document.scene.height * (view.height - view.margin * 2) }
 function pieceColor(piece: Piece) {
   if (piece.id === failed.value) return '#e88b69'
-  if (fallen.value.has(piece.id)) return '#89c5a5'
+  if (fallen.value.has(piece.id)) {
+    return pieceOrigin.value.get(piece.id) === 'retained' ? '#89c5a5' : '#e6bd68'
+  }
   if (piece.kind === 'ramp') return '#8ca6a0'
   if (piece.kind === 'splitter') return '#e6bd68'
   if (piece.kind === 'trigger') return '#df8d70'
@@ -61,12 +72,20 @@ function eventTime(pieceId: string) {
   const event = props.run?.events.find(item => item.pieceId === pieceId)
   return event ? event.time.toFixed(2) : ''
 }
+function eventOrigin(pieceId: string) {
+  return pieceOrigin.value.get(pieceId) ?? null
+}
 </script>
 
 <template>
   <section class="stage-panel" aria-label="骨牌构筑场景">
     <div class="stage-toolbar">
       <div class="stage-mode"><MousePointer2 :size="15" /><span>{{ activeTool ? '点击空位添加元件' : '编辑场景' }}</span></div>
+      <div v-if="run" class="stage-legend">
+        <span><i class="legend-dot retained"></i>保留前缀 R{{ run.events[0]?.layoutRevision ?? run.revision }}</span>
+        <span><i class="legend-dot recomputed"></i>重算后缀 R{{ run.revision }}</span>
+        <span v-if="run.affectedPieceIds.length"><i class="legend-dot affected"></i>受影响元件 {{ run.affectedPieceIds.length }}</span>
+      </div>
       <div class="stage-readout"><span class="readout-dot"></span>{{ document.pieces.length }} 件元件 <span class="readout-sep">·</span> {{ document.scene.width }} × {{ document.scene.height }} 桌面</div>
     </div>
     <svg ref="svg" class="stage-svg" :viewBox="`0 0 ${view.width} ${view.height}`" role="img"
@@ -109,7 +128,12 @@ function eventTime(pieceId: string) {
         <circle v-if="piece.id === failed" cy="-34" r="7" class="failure-marker" />
         <text y="32" text-anchor="middle" class="piece-label">{{ piece.label }}</text>
         <text v-if="eventTime(piece.id)" y="44" text-anchor="middle" class="piece-time">{{ eventTime(piece.id) }}s</text>
+        <g v-if="eventOrigin(piece.id)" class="origin-badge" :class="eventOrigin(piece.id) ?? ''">
+          <rect x="-13" y="-40" width="26" height="11" rx="2.5" />
+          <text y="-32" text-anchor="middle">{{ eventOrigin(piece.id) === 'retained' ? '保留' : '重算' }}</text>
+        </g>
         <rect v-if="selectedId === piece.id || focusPieceId === piece.id" x="-18" y="-28" width="36" height="55" rx="8" class="selection-ring" />
+        <rect v-else-if="affected.has(piece.id)" x="-18" y="-28" width="36" height="55" rx="8" class="affected-ring" />
       </g>
 
       <g v-if="focusPieceId" class="focus-reticle" pointer-events="none">
